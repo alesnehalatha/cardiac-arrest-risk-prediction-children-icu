@@ -18,20 +18,22 @@ from Remote_User.models import ClientRegister_Model,cardiac_arrest_prediction,de
 
 def login(request):
 
-
     if request.method == "POST" and 'submit1' in request.POST:
 
         username = request.POST.get('username')
         password = request.POST.get('password')
+
         try:
-            enter = ClientRegister_Model.objects.get(username=username,password=password)
+            enter = ClientRegister_Model.objects.get(username=username, password=password)
             request.session["userid"] = enter.id
 
+            # ✅ GO TO PREDICTION PAGE AFTER LOGIN
             return redirect('Predict_Cardiac_Arrest_Type')
-        except:
-            pass
 
-    return render(request,'RUser/login.html')
+        except:
+            return render(request, 'RUser/login.html', {'error': 'Invalid credentials'})
+
+    return render(request, 'RUser/login.html')
 
 def Add_DataSet_Details(request):
 
@@ -62,134 +64,160 @@ def ViewYourProfile(request):
 
 
 def Predict_Cardiac_Arrest_Type(request):
+
+    import pandas as pd
+    import numpy as np
+
+    from sklearn.model_selection import train_test_split
+    from sklearn.preprocessing import LabelEncoder, StandardScaler
+    from sklearn.ensemble import RandomForestClassifier, VotingClassifier
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.svm import LinearSVC
+    from sklearn.neural_network import MLPClassifier
+    from sklearn.metrics import accuracy_score
+
     if request.method == "POST":
 
-        if request.method == "POST":
+        # ---------------------------
+        # STEP 1: GET INPUT VALUES
+        # ---------------------------
+        Fid = request.POST.get('Fid')
+        Age_In_Days = request.POST.get('Age_In_Days')
+        Sex = request.POST.get('Sex')
+        ChestPainType = request.POST.get('ChestPainType')
+        RestingBP = request.POST.get('RestingBP')
+        RestingECG = request.POST.get('RestingECG')
+        MaxHR = request.POST.get('MaxHR')
+        ExerciseAngina = request.POST.get('ExerciseAngina')
+        Oldpeak = request.POST.get('Oldpeak')
+        ST_Slope = request.POST.get('ST_Slope')
+        slp = request.POST.get('slp')
+        caa = request.POST.get('caa')
+        thall = request.POST.get('thall')
 
-            Fid= request.POST.get('Fid')
-            Age_In_Days= request.POST.get('Age_In_Days')
-            Sex= request.POST.get('Sex')
-            ChestPainType= request.POST.get('ChestPainType')
-            RestingBP= request.POST.get('RestingBP')
-            RestingECG= request.POST.get('RestingECG')
-            MaxHR= request.POST.get('MaxHR')
-            ExerciseAngina= request.POST.get('ExerciseAngina')
-            Oldpeak= request.POST.get('Oldpeak')
-            ST_Slope= request.POST.get('ST_Slope')
-            slp= request.POST.get('slp')
-            caa= request.POST.get('caa')
-            thall= request.POST.get('thall')
-
-
+        # ---------------------------
+        # STEP 2: LOAD DATASET
+        # ---------------------------
         data = pd.read_csv("Datasets.csv", encoding='latin-1')
 
-        def apply_results(status):
-            if (status == 0):
-                return 0  # No Cardiac Arrest Found
-            elif (status == 1):
-                return 1  # Cardiac Arrest Found
+        # Target creation
+        data['Results'] = data['HeartDisease']
 
-        data['Results'] = data['HeartDisease'].apply(apply_results)
+        # ---------------------------
+        # STEP 3: SELECT FEATURES (IMPORTANT FIX)
+        # ---------------------------
+        features = [
+            'Age_In_Days',
+            'Sex',
+            'ChestPainType',
+            'RestingBP',
+            'RestingECG',
+            'MaxHR',
+            'ExerciseAngina',
+            'Oldpeak',
+            'ST_Slope',
+            'slp',
+            'caa',
+            'thall'
+        ]
 
-        x = data['Fid']
+        x = data[features]
         y = data['Results']
 
+        # ---------------------------
+        # STEP 4: ENCODE TEXT DATA
+        # ---------------------------
+        le = LabelEncoder()
 
-        cv = CountVectorizer()
+        for col in x.columns:
+            if x[col].dtype == 'object':
+                x[col] = le.fit_transform(x[col])
 
-        x = cv.fit_transform(x)
+        # ---------------------------
+        # STEP 5: SCALE DATA
+        # ---------------------------
+        scaler = StandardScaler()
+        x = scaler.fit_transform(x)
 
-        print(x)
-        print("Y")
-        print(y)
+        # ---------------------------
+        # STEP 6: TRAIN TEST SPLIT
+        # ---------------------------
+        X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42)
 
-        models = []
-        from sklearn.model_selection import train_test_split
-        X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.20)
-        X_train.shape, X_test.shape, y_train.shape
+        # ---------------------------
+        # STEP 7: MODELS
+        # ---------------------------
+        svm_model = LinearSVC()
+        rf_model = RandomForestClassifier()
+        lr_model = LogisticRegression(max_iter=1000)
+        mlp_model = MLPClassifier(max_iter=500)
 
-        print("Artificial Neural Network (ANN)")
+        models = [
+            ('svm', svm_model),
+            ('rf', rf_model),
+            ('lr', lr_model),
+            ('mlp', mlp_model)
+        ]
 
-        from sklearn.neural_network import MLPClassifier
-        mlpc = MLPClassifier().fit(X_train, y_train)
-        y_pred = mlpc.predict(X_test)
-        print("ACCURACY")
-        print(accuracy_score(y_test, y_pred) * 100)
-        print("CLASSIFICATION REPORT")
-        print(classification_report(y_test, y_pred))
-        print("CONFUSION MATRIX")
-        print(confusion_matrix(y_test, y_pred))
-        models.append(('MLPClassifier', mlpc))
+        classifier = VotingClassifier(estimators=models, voting='hard')
 
-        # SVM Model
-        print("SVM")
-        from sklearn import svm
-
-        lin_clf = svm.LinearSVC()
-        lin_clf.fit(X_train, y_train)
-        predict_svm = lin_clf.predict(X_test)
-        svm_acc = accuracy_score(y_test, predict_svm) * 100
-        print(svm_acc)
-        print("CLASSIFICATION REPORT")
-        print(classification_report(y_test, predict_svm))
-        print("CONFUSION MATRIX")
-        print(confusion_matrix(y_test, predict_svm))
-        models.append(('svm', lin_clf))
-
-        print("Logistic Regression")
-
-        from sklearn.linear_model import LogisticRegression
-
-        reg = LogisticRegression(random_state=0, solver='lbfgs').fit(X_train, y_train)
-        y_pred = reg.predict(X_test)
-        print("ACCURACY")
-        print(accuracy_score(y_test, y_pred) * 100)
-        print("CLASSIFICATION REPORT")
-        print(classification_report(y_test, y_pred))
-        print("CONFUSION MATRIX")
-        print(confusion_matrix(y_test, y_pred))
-        models.append(('logistic', reg))
-
-
-        classifier = VotingClassifier(models)
         classifier.fit(X_train, y_train)
-        y_pred = classifier.predict(X_test)
 
-        Fid1 = [Fid]
-        vector1 = cv.transform(Fid1).toarray()
-        predict_text = classifier.predict(vector1)
+        # ---------------------------
+        # STEP 8: USER INPUT PREDICTION
+        # ---------------------------
+        user_data = [[
+            Age_In_Days,
+            Sex,
+            ChestPainType,
+            RestingBP,
+            RestingECG,
+            MaxHR,
+            ExerciseAngina,
+            Oldpeak,
+            ST_Slope,
+            slp,
+            caa,
+            thall
+        ]]
 
-        pred = str(predict_text).replace("[", "")
-        pred1 = str(pred.replace("]", ""))
+        user_df = pd.DataFrame(user_data, columns=features)
 
-        prediction = int(pred1)
+        # encode user input same way
+        for col in user_df.columns:
+            if user_df[col].dtype == 'object':
+                user_df[col] = le.fit_transform(user_df[col])
 
-        if prediction == 0:
-            val = 'No Cardiac Arrest Found'
-        elif prediction == 1:
-            val = 'Cardiac Arrest Found'
+        user_df = scaler.transform(user_df)
 
-        print(prediction)
-        print(val)
+        prediction = classifier.predict(user_df)
+
+        # ---------------------------
+        # STEP 9: RESULT
+        # ---------------------------
+        if prediction[0] == 0:
+            val = "No Cardiac Arrest Found"
+        else:
+            val = "Cardiac Arrest Found"
 
         cardiac_arrest_prediction.objects.create(
-        Fid=Fid,
-        Age_In_Days=Age_In_Days,
-        Sex=Sex,
-        ChestPainType=ChestPainType,
-        RestingBP=RestingBP,
-        RestingECG=RestingECG,
-        MaxHR=MaxHR,
-        ExerciseAngina=ExerciseAngina,
-        Oldpeak=Oldpeak,
-        ST_Slope=ST_Slope,
-        slp=slp,
-        caa=caa,
-        thall=thall,
-        Prediction=val)
+            Fid=Fid,
+            Age_In_Days=Age_In_Days,
+            Sex=Sex,
+            ChestPainType=ChestPainType,
+            RestingBP=RestingBP,
+            RestingECG=RestingECG,
+            MaxHR=MaxHR,
+            ExerciseAngina=ExerciseAngina,
+            Oldpeak=Oldpeak,
+            ST_Slope=ST_Slope,
+            slp=slp,
+            caa=caa,
+            thall=thall,
+            Prediction=val
+        )
 
-        return render(request, 'RUser/Predict_Cardiac_Arrest_Type.html',{'objs': val})
+        return render(request, 'RUser/Predict_Cardiac_Arrest_Type.html', {'objs': val})
+
     return render(request, 'RUser/Predict_Cardiac_Arrest_Type.html')
-
-
 

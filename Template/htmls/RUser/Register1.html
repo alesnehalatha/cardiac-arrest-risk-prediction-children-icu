@@ -1,110 +1,102 @@
-<link href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
-
-{% load static %}
-
+<{% load static %}
 <!DOCTYPE html>
-
 <html lang="en">
 
-	<title>Register Your Details</title>
+<head>
+    <meta charset="utf-8">
+    <title>Register</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- Bootstrap -->
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
 
-	    <style type="text/css">
-<!--
-.style1 {
-	color: #FF0000;
-	font-weight: bold;
-}
--->
-        </style>
-	    <head>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Lobster" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Righteous" rel="stylesheet">
 
+    <style>
+        body {
+            background: url("{% static 'bg.jpg' %}") no-repeat center center fixed;
+            background-size: cover;
+        }
 
+        .container {
+            margin-top: 50px;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+        }
 
-	<link href="https://fonts.googleapis.com/css?family=Lobster" rel="stylesheet">
-		<link href="https://fonts.googleapis.com/css?family=Righteous" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css?family=Fredoka+One" rel="stylesheet">
+        #title {
+            font-family: 'Fredoka One', cursive;
+            color: red;
+            text-align: center;
+            font-weight: bold;
+        }
 
+        .btn-custom {
+            width: 100%;
+        }
+    </style>
+</head>
 
+<body>
 
-		<style>
-			body {background: url("{% static 'bg.jpg' %}");
-			}
-			.container-fluid {padding:50px;}
-			.container{background-color:white;padding:50px;   }
-			#title{font-family: 'Fredoka One', cursive;
-}
-			.text-uppercase{
-			font-family: 'Righteous', cursive;
+<div class="container col-md-6">
 
-			}
-        </style>
-	</head>
-	<body>
-	<div class="container-fluid">
-		<div>
-			<h2 class="text-center style1" id="title">A Machine Learning Approach Using Statistical Models for Early Detection of Cardiac Arrest in Newborn Babies in the Cardiac Intensive Care Unit
-</h2>
-			 <p class="text-center">
-				<span class="style1"><small id="passwordHelpInline" class="text-muted">Cardiac arrest, newborn, early detection, intensive care unit, statistical modeling..</small></span></p>
-			 <hr>
-			<div class="row">
-				<div class="col-md-5">
- 					<form role="form" method="POST" >
-						{% csrf_token %}
-						<fieldset>
-                            {% load static %}
-						<img src="{% static '/Register.jpg' %}" alt="My image"><br>
-						<span class="style1">REGISTER YOUR DETAILS HERE !!!						</span>
-						<div class="form-group">
-								<input type="text" name="username" id="username"  placeholder="User Name" required>
-						</div>
+    <h2 id="title">REGISTER</h2>
 
-							<div class="form-group">
-								<input type="email" name="email" id="email"  placeholder="Email Address" required>
-							</div>
-							<div class="form-group">
-								<input type="password" name="password" id="password"  placeholder="Password" required>
-							</div>
-								<div class="form-group">
-								<input type="number" name="phoneno" id="phoneno"  placeholder="Mobile Number" required>
-							</div>
-							<div class="form-group">
-								<input type="text" name="country" id="country"  placeholder="Country" required>
-							</div>
-							<div class="form-group">
-								<input type="text" name="state" id="state"  placeholder="State" required>
-							</div>
-							<div class="form-group">
-								<input type="text" name="city" id="city"  placeholder="City" required>
-							</div>
+    <p style="text-align:center;color:green;">
+        {% if msg %}
+            {{ msg }}
+        {% endif %}
+    </p>
 
+    <form method="POST">
+        {% csrf_token %}
 
-						<div class="form-check">
-						  <label class="form-check-label"></label>
-						</div>
- 							<div>
- 									  <input type="submit" class="btn btn-lg btn-primary" name="submit"  value="sign_up" >
- 							</div>
-					  </fieldset>
-						<div><br>
-						  <button class="btn btn-lg "><a href="{% url 'login' %}">User Login</a></button>
-					  </div>
-					</form>
-				</div>
+        <div class="form-group">
+            <input type="text" name="username" class="form-control" placeholder="Username" required>
+        </div>
 
-				<div class="col-md-2">
-					<!-------null------>
-				</div>
+        <div class="form-group">
+            <input type="email" name="email" class="form-control" placeholder="Email" required>
+        </div>
 
-				<div class="col-md-5">				</div>
-			</div>
-		</div>
+        <div class="form-group">
+            <input type="password" name="password" class="form-control" placeholder="Password" required>
+        </div>
 
-	</div>
-	</body>
+        <div class="form-group">
+            <input type="text" name="phoneno" class="form-control" placeholder="Phone Number" required>
+        </div>
 
+        <div class="form-group">
+            <input type="text" name="country" class="form-control" placeholder="Country" required>
+        </div>
 
+        <div class="form-group">
+            <input type="text" name="state" class="form-control" placeholder="State" required>
+        </div>
+
+        <div class="form-group">
+            <input type="text" name="city" class="form-control" placeholder="City" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-custom">
+            Register
+        </button>
+    </form>
+
+    <br>
+
+    <div style="text-align:center;">
+        <a href="{% url 'login' %}" class="btn btn-success">
+            Already Registered? Login
+        </a>
+    </div>
+
+</div>
+
+</body>
 </html>
