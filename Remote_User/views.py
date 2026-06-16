@@ -27,7 +27,7 @@ def login(request):
             enter = ClientRegister_Model.objects.get(username=username,password=password)
             request.session["userid"] = enter.id
 
-            return redirect('ViewYourProfile')
+            return redirect('Predict_Cardiac_Arrest_Type')
         except:
             pass
 
