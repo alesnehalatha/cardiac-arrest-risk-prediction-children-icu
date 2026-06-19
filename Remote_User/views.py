@@ -53,9 +53,9 @@ def Register1(request):
         ClientRegister_Model.objects.create(username=username, email=email, password=password, phoneno=phoneno,
                                             country=country, state=state, city=city)
 
+        # After registration go to login page 
+        return redirect('login')
         return render(request, 'RUser/Register1.html')
-    else:
-        return render(request,'RUser/Register1.html')
 
 def ViewYourProfile(request):
     userid = request.session['userid']
