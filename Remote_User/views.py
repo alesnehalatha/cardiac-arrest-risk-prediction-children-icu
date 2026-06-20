@@ -3,6 +3,7 @@ from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
 import datetime
 import numpy as np
+import os
 
 from sklearn.ensemble import RandomForestClassifier
 import pandas as pd
@@ -55,7 +56,8 @@ def Register1(request):
 
         # After registration go to login page 
         return redirect('login')
-        return render(request, 'RUser/Register1.html')
+    
+    return render(request, 'RUser/Register1.html')
 
 def ViewYourProfile(request):
     userid = request.session['userid']
@@ -98,7 +100,10 @@ def Predict_Cardiac_Arrest_Type(request):
         # ---------------------------
         # STEP 2: LOAD DATASET
         # ---------------------------
-        data = pd.read_csv("Datasets.csv", encoding='latin-1')
+        # Use absolute path to ensure file is found on PythonAnywhere
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        csv_path = os.path.join(base_dir, 'Datasets.csv')
+        data = pd.read_csv(csv_path, encoding='latin-1')
 
         # Target creation
         data['Results'] = data['HeartDisease']
